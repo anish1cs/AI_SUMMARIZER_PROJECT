@@ -1,0 +1,7 @@
+flask
+requests
+google-generativeai
+python-dotenv
+readability-lxml
+Flask-Cors
+gunicorn

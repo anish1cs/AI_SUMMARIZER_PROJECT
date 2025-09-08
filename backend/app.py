@@ -11,19 +11,25 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# --- PRODUCTION-READY CORS CONFIGURATION ---
-# This line is the critical fix. It tells our backend to only accept
-# requests from the frontend URL we will provide in Render.
-# For local testing, it defaults to allowing Live Server to connect.
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5500')
-CORS(app, resources={r"/api/*": {"origins": FRONTEND_URL}})
-# ---------------------------------------------
+# --- HARDCODED CORS CONFIGURATION ---
+# This is the guaranteed fix. We are explicitly telling the backend
+# to ONLY allow requests from your specific live frontend URL.
+# For local testing, we also allow the Live Server address.
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://ai-summarizer-frontend-tosz.onrender.com",
+            "http://127.0.0.1:5500"
+        ]
+    }
+})
+# ------------------------------------
 
 # Configure the Gemini API
 try:
     API_KEY = os.getenv('GEMINI_API_KEY')
     if not API_KEY:
-        raise ValueError("GEMINI_API_KEY not found. Please set it in your .env file or environment variables.")
+        raise ValueError("GEMINI_API_KEY not found. Please set it in your .env or environment variables.")
     genai.configure(api_key=API_KEY)
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
 except Exception as e:
@@ -31,7 +37,6 @@ except Exception as e:
     model = None
 
 def scrape_article_content(url):
-    """Scrapes the main text content and title from a given URL."""
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
         response = requests.get(url, headers=headers, timeout=15)
@@ -83,4 +88,5 @@ def takeaways():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
+
 
